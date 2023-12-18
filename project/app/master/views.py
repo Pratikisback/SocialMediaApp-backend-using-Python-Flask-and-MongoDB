@@ -1,3 +1,5 @@
+import pprint
+
 from flask_restful import Api, Resource
 from project import api
 from flask import make_response, jsonify, request, Blueprint
@@ -18,21 +20,23 @@ class CreatePost(Resource):
             tags = request.json.get("tags", [])
             get_posts = request.json.get("get_posts", False)
 
-            if insert_many_posts(posts):
-                return make_response(jsonify({"message": "posts inserted successfully"}))
-
             if user_id:
-                if insert_post_in_db(id, title, body, user_id, reactions, tags):
-                    return make_response(jsonify({"message": "posted successfully"}))
+                if insert_post_in_db( title, body, user_id, reactions, tags):
+                    return make_response(jsonify({"message": "posted successfully"}), 201)
                 else:
-                    return make_response(jsonify({"message": "post was not inserted"}))
+                    return make_response(jsonify({"message": "post was not inserted"}), 400)
+
+            if insert_many_posts(posts):
+                return make_response(jsonify({"message": "posts inserted successfully"}), 201)
+
+
 
             elif get_posts:
                 data = get_posts()
-                return make_response(jsonify({"message": "Posts", "posts": data}))
+                return make_response(jsonify({"message": "Posts", "posts": data}), 200)
 
         except Exception as e:
-            return make_response(jsonify({"message": str(e)}))
+            return make_response(jsonify({"message": str(e)}), 500)
 
 
 class GetPosts(Resource):
@@ -41,10 +45,11 @@ class GetPosts(Resource):
             get_posts = request.json.get("get_posts", False)
             if get_posts:
                 data = get_all_posts()
-                return make_response(jsonify({"message": "Posts", "posts": data}))
+                pprint.pprint(list(data))
+                return make_response(jsonify({"message": "Posts", "posts": data}), 200)
 
         except Exception as e:
-            return make_response(jsonify({"message": str(e)}))
+            return make_response(jsonify({"message": str(e)}), 500)
 
 
 api.add_resource(CreatePost, '/user/create-post')
